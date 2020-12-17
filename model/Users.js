@@ -2,6 +2,8 @@ const crypto = require('crypto')
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+
+//@ Descritption: This is the User profile
 const UserSchema = new mongoose.Schema({
     name:{
         type:String,
@@ -20,12 +22,30 @@ const UserSchema = new mongoose.Schema({
         enum:['user','publisher'],
         default:'user'
     },
+    projects:{
+        type: String,
+    },
+    devTitle:{
+        type:String
+    },
+    repos:{
+        type:String
+    },
+    gitProfile:{
+        type:String
+    },
+    twitter:{
+        type:String
+    },
     password:{
         type:String,
         required:[true,'Please add a pasword'],
         minlength:6,
         select:false
     },
+    status: {String},
+    pendingFriends: [this],
+    friends: [this],
     resetPasswordToken:String,
     resetPasswordExpire:Date,
     createdAt:{

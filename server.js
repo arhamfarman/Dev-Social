@@ -13,7 +13,8 @@ const app = express();
 //Route Files
 const activitiesPost = require('./routes/activityPost')
 const auth =  require('./routes/auth')
-
+const comment =  require('./routes/comments')
+// const friends =  require('./routes/friends')
 
 // //Body Parser
 app.use(express.json())
@@ -36,6 +37,8 @@ if(process.env.NODE_ENV==='development'){
     app.use(morgan('dev'))
 }
 
+//file uploading
+app.use(fileUpload())
 
 
 //Set static folder
@@ -44,8 +47,9 @@ app.use(express.static(path.join(__dirname,'public')))
 
 //Mount Routes
 app.use('/api/v1/postactivity',activitiesPost)
+app.use('/api/v1/comment',comment)
 app.use('/api/v1/auth',auth)
-
+// app.use('/api/v1/friends',auth)
 
 //Error Handler
 app.use(errorHandler)
