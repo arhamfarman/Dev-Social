@@ -22,6 +22,7 @@ exports.createPost = asyncHandler(async (req, res, next) => {
     });
   });
 
+  
 // @desc    Get  Single Post
 // @route   GET /api/v1/poatactivity/:id
 // @access  Public
@@ -142,4 +143,5 @@ file.mv(`${process.env.FILE_UPLOAD_PATH}/${file.name}`,async err=>{
   })
 })
 })
+
 

@@ -43,11 +43,12 @@ const UserSchema = new mongoose.Schema({
         minlength:6,
         select:false
     },
-    status: {String},
-    pendingFriends: [this],
-    friends: [this],
+    status: String,
+    pendingFriends: String,
+    friends: String,
     resetPasswordToken:String,
     resetPasswordExpire:Date,
+    requestToken:String,
     createdAt:{
         type:Date,
         default:Date.now

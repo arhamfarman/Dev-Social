@@ -25,7 +25,34 @@ exports.getOneComment = asyncHandler(async(req,res,next)=>{
       })
  })
 
- //@desc    Add a comment
+
+
+//@desc    Get  All comments for a Single Post
+//@route   GET /api/v1/postactivity/:postId/comment
+//@access  Public
+
+exports.getComments = asyncHandler(async(req,res,next)=>{
+    let query;
+
+    if(req.params.postID){
+        query  = Comment.find({post: req.params.postID})
+    }else{
+        query = Comment.find().populate({
+            path:'post',
+            select: 'comment'
+        })
+    }
+
+    const comment = await query
+
+     res.status(200).json({
+         success:true,
+         count:comment.length,
+         data:comment
+     })
+})
+
+//@desc    Add a comment
 //@route   POST /api/v1/postactivity/:postId/comment
 //@access Private
 
@@ -46,8 +73,8 @@ exports.addComment = asyncHandler(async(req,res,next)=>{
        //Make sure user is the comment maker
        if(post.user.toString()!==req.user.id&& req.user.role!=='admin'){
         return next(
-            new ErrorResponse(`User with he id of ${req.user.id} is not authorized to add a comment to post ${post._id}`,401)
-        )
+            new ErrorResponse(`User with he id of ${req.user.id} is not authorized to add a comment to post`,401)
+        ) 
     }
  
     const comment = await Comment.create(req.body)
