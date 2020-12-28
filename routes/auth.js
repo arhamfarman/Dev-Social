@@ -7,7 +7,9 @@ const {register,
     updateDetails,
     // updatePassword,
     // regVerification, 
-    checkProfile
+    checkProfile,
+    googleAuth,
+    googleCallback
 } = require('../controllers/auth')
 const {protect}=require('../middleware/auth')
 const router = express.Router()
@@ -21,4 +23,6 @@ router.post('/forgotpassword',forgotPassword)
 // router.put('/updatepassword',protect,updatePassword)
 router.get('/profile',checkProfile)
 router.put('/resetpassword/:resetToken',resetPassword)
+router.get('/googleauth',googleAuth)
+router.get('/google/callback',googleCallback)
 module.exports = router 

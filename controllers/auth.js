@@ -14,6 +14,10 @@ const { request } = require("@octokit/request");
 var http = require('http');
 var https = require('https');
 const { json } = require('body-parser');
+const { google } = require('googleapis');
+const { red } = require('colors');
+const Users = require('../model/Users');
+
 
 
 //@desc    Register User
@@ -22,27 +26,56 @@ const { json } = require('body-parser');
 
 exports.register = asyncHandler(async(req,res,next)=>{
 
-    const{name,email,password,role}= req.body
+const{name,email,role}= req.body
+const em = await User.findOne({email})
 
-    
-     ghAccountExists('arhamfarman').then(exists => {
-        console.log(exists,"uio"); // true  
-     });
-    
-if(exists){
-    
-//Create User
-const user = await User.create({
-    name,
-    email,
-    password,
-    role
-})
 
-    sendTokenResponse(user,200,res)}
-    else{
-        return next(new ErrorResponse('Gitub User Doesnt Exist', 400))
+
+    if(em){
+        return next(new ErrorResponse('USer with that email already exists', 404))
     }
+
+    const password = generateString()
+
+    const user = await User.create({
+        name,
+        email,
+        password,
+        role
+      });
+
+    //Get reset token
+
+   // const resetToken = user.getVerfiyToken()
+
+    await user.save({validateBeforeSave:false})
+
+    // Create reset URL
+    const resetURL  = `${req.protocol}://${req.get('host')}/api/v1/auth/login/`
+        
+    const message = `This is the verification email, to complete registration go to:
+     \n${resetURL}\nYour Password is "${password}"`
+
+    try {
+        await sendEmail({
+            email: user.email,
+            subject: 'Email Verification',
+            message
+        })
+
+        res.status(200).json({success:true, data: 'Email sent'})
+    } catch (err) {
+        console.log(err)
+        user.verifToken = undefined
+        user.verifTokenExpire= undefined
+
+        await user.save({validateBeforeSave:false})
+
+        return next(new ErrorResponse('Email could not be sent', 500))
+    }
+
+    sendTokenResponse(user, 200, res);
+   
 })
 
 
@@ -250,3 +283,80 @@ const result = await request("GET /users/arhamfarman");
    })
 
 
+
+//@desc    Google Auth
+//@route   POST /api/v1/auth googleauth
+//@access  Public
+exports.googleAuth = asyncHandler(async(req,res,next)=>{
+
+   clientId= process.env.GOOGLE_CLIENT_ID, // e.g. asdfghjkljhgfdsghjk.apps.googleusercontent.com
+   clientSecret= process.env.GOOGLE_CLIENT_SECRET, // e.g. _ASDFA%DFASDFASDFASD#FAD-
+   redirect= process.env.GOOGLE_REDIRECT_URL
+    
+    const oAuth2Client = new google.auth.OAuth2(clientId, clientSecret,redirect)
+    var authed = false;
+
+    if (!authed) {
+        // Generate an OAuth URL and redirect there
+        const url = oAuth2Client.generateAuthUrl({
+            access_type: 'offline',
+            scope: 'https://www.googleapis.com/auth/gmail.readonly'
+        });
+        console.log(url)
+        res.redirect(url);
+    } else {
+        const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
+        gmail.users.labels.list({
+            userId: 'me',
+        }, (err, res) => {
+            if (err) return console.log('The API returned an error: ' + err);
+            const labels = res.data.labels;
+            if (labels.length) {
+                console.log('Labels:');
+                labels.forEach((label) => {
+                    console.log(`- ${label.name}`);
+                });
+            } else {
+                console.log('No labels found.');
+            }
+        });
+        res.send('Logged in')
+    }
+})
+
+exports.googleCallback = asyncHandler(async(req,res,next)=>{
+    clientId= process.env.GOOGLE_CLIENT_ID, // e.g. asdfghjkljhgfdsghjk.apps.googleusercontent.com
+    clientSecret= process.env.GOOGLE_CLIENT_SECRET, // e.g. _ASDFA%DFASDFASDFASD#FAD-
+    redirect= process.env.GOOGLE_REDIRECT_URL
+    const oAuth2Client = new google.auth.OAuth2(clientId, clientSecret, redirect)
+    var authed = false;   
+    const code = req.query.code
+    if (code) {
+        // Get an access token based on our OAuth code
+        oAuth2Client.getToken(code, function (err, tokens) {
+            if (err) {
+                console.log('Error authenticating')
+                console.log(err);
+            } else {
+                console.log('Successfully authenticated');
+                oAuth2Client.setCredentials(tokens);
+                authed = true;
+                res.redirect('/')
+            }
+        });
+    }
+})
+
+
+
+function generateString() {
+    const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    length = 10
+    let result = '';
+    const charactersLength = characters.length;
+    for ( let i = 0; i < length; i++ ) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    result.toString
+    return result;
+}

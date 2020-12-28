@@ -1,4 +1,7 @@
 export const getUserSuccess = (username) => async dispatch => {
+  
+  ////    IGNORE THIS FILE
+  
   // const REQUEST = `https://api.github.com/users/${username}`
   // const REQUEST = `https://api.github.com/search/repositories?q=language:${username}&order=desc`
  const REQUEST = `https://api.github.com/repos/${username}/CS-Notes/languages`
@@ -17,3 +20,6 @@ export const getUserSuccess = (username) => async dispatch => {
         payload:response.data
       });
 }
+
+
+  ////    IGNORE THIS FILE

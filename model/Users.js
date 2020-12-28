@@ -39,7 +39,7 @@ const UserSchema = new mongoose.Schema({
     },
     password:{
         type:String,
-        required:[true,'Please add a pasword'],
+        required:false,
         minlength:6,
         select:false
     },
@@ -92,6 +92,25 @@ UserSchema.methods.getResetPasswordToken = function(){
     console.log(resetToken)
 
     return resetToken
+}
+
+// Generate and hash password token
+UserSchema.methods.getVerfiyToken = function(){
+    //Generate token
+    const verifToken = crypto.randomBytes(20).toString('hex')
+
+    //Hash token and set to resetPasswordToken field
+    this.verifToken = crypto
+    .createHash('sha256')
+    .update(verifToken)
+    .digest('hex')
+
+    // Set Expire 
+    this.verifTokenExpire = Date.now() + 10*60*1000
+
+    console.log(verifToken)
+
+    return verifToken
 }
 
 module.exports = mongoose.model('User',UserSchema)
