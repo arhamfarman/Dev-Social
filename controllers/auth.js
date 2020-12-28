@@ -4,7 +4,16 @@ const User= require('../model/Users');
 const { unsubscribe } = require('../routes/auth');
 const sendEmail = require('../utils/sendEmail.js');
 const crypto = require('crypto');
+const octokitRequest = require('@octokit/request');
 const { match } = require('assert');
+const ghAccountExists = require('gh-account-exists');
+const { exists } = require('../model/Users');
+var gs = require('github-scraper');
+var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+const { request } = require("@octokit/request");
+var http = require('http');
+var https = require('https');
+const { json } = require('body-parser');
 
 
 //@desc    Register User
@@ -15,8 +24,14 @@ exports.register = asyncHandler(async(req,res,next)=>{
 
     const{name,email,password,role}= req.body
 
-    //Create User
-
+    
+     ghAccountExists('arhamfarman').then(exists => {
+        console.log(exists,"uio"); // true  
+     });
+    
+if(exists){
+    
+//Create User
 const user = await User.create({
     name,
     email,
@@ -24,7 +39,10 @@ const user = await User.create({
     role
 })
 
-    sendTokenResponse(user,200,res)
+    sendTokenResponse(user,200,res)}
+    else{
+        return next(new ErrorResponse('Gitub User Doesnt Exist', 400))
+    }
 })
 
 
@@ -213,3 +231,22 @@ const sendTokenResponse = (user, statusCode, res)=>{
         token
     })
 }
+
+//@desc    Check User Profile
+//@route   POST /api/v1/postactivity/:id
+//@access  Public
+exports.checkProfile = asyncHandler(async(req,res,next)=>{
+//     var url = '/arhamfarman' // a random username
+//   gs(url, function(err, data) {
+//     console.log(data); // or what ever you want to do with the data
+//   })
+//   requestUserRepos(namer,res,req)
+const result = await request("GET /users/arhamfarman");
+  
+  console.log(`Name:${result.data.name}\nProfile Picutre:${result.data.avatar_url}\nURL:${result.data.url}\nFollowers:${result.data.followers}\n${result.data.following}\n${result.data.gists_url}\n`);
+//   console.log(result.data.login)
+  res.json(result.data)
+  
+   })
+
+

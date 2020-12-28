@@ -44,7 +44,6 @@ const UserSchema = new mongoose.Schema({
         select:false
     },
     status: String,
-    pendingFriends: String,
     friends: String,
     resetPasswordToken:String,
     resetPasswordExpire:Date,

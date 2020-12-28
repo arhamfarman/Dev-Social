@@ -60,7 +60,7 @@ exports.sendReq = asyncHandler(async(req,res,next)=>{
 
 
 
-//@desc    Reset Password 
+//@desc    Reset Password / acceptRequest
 //@route   PUT /api/v1/auth/resetPassword/:resetoken
 //@access  Private
 
@@ -82,15 +82,13 @@ exports.acceptRequest = asyncHandler(async(req,res,next)=>{
 
     //Set the new password
      user.status = req.body.status
+     user.friends = req.body.friends
      user.resetPasswordToken=undefined
      user.resetPasswordExpire=undefined
      await user.save()
 
     sendTokenResponse(user, 200, res)
 })
-
-
-
 
 
 
@@ -114,6 +112,21 @@ const sendTokenResponse = (user, statusCode, res)=>{
         token
     })
 }
+
+//@desc    Get  All Friends of a single User
+//@route   GET /api/v1/friends/:postId/friends
+//@access  Public
+
+exports.getFriends = asyncHandler(async(req,res,next)=>{
+    
+    const friends = await User.findById(req.params.id)
+
+     res.status(200).json({
+         success:true,
+         count:friends.length,
+         data:friends.friends
+     })
+})
 
  // Post request to an ID  POST
  // ID recieves the request GET

@@ -3,6 +3,7 @@ const Post = require('../model/activitesPost')
 const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../middleware/async');
 const User = require('../model/Users') 
+var gs = require('github-scraper');
 
 // @desc    Create a Post
 // @route   Post /api/v1/activites/post
@@ -67,8 +68,8 @@ res.status(200).json({success:true,data:post})
 
 
 
-//@desc    Delete  ALL Bootcamps
-//@route   DELETE /api/v1/bootcamps/:id
+//@desc    Delete  Posts
+//@route   DELETE /api/v1/postactivity/:id
 //@access  Public
 exports.deletePosts = asyncHandler(async(req,res,next)=>{
 
@@ -90,8 +91,8 @@ exports.deletePosts = asyncHandler(async(req,res,next)=>{
 
 })
 
-//@desc    Upload photo for bootcamp
-//@route   DELETE /api/v1/bootcamps/:id/photo
+//@desc    Upload photo for Post
+//@route   DELETE /api/v1/postactivity/:id/photo
 //@access  Private
 exports.postPhotoUpload= asyncHandler(async(req,res,next)=>{
 

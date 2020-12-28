@@ -4,6 +4,10 @@
   "description": "Social Media App for Developers",
   "main": "server.js",
   "dependencies": {
+    "@octokit/core": "^3.2.4",
+    "@octokit/rest": "^18.0.12",
+    "ajax": "0.0.4",
+    "ajax-client": "^1.4.4",
     "bcrypt": "^5.0.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
@@ -14,13 +18,20 @@
     "express": "^4.17.1",
     "express-async-handler": "^1.1.4",
     "express-fileupload": "^1.2.0",
+    "gh-account-exists": "^0.1.0",
     "git": "^0.1.5",
+    "github-scraper": "^7.0.1",
+    "jqeury": "0.0.1-security",
+    "jquery": "^3.5.1",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.11.8",
     "morgan": "^1.10.0",
     "nodemailer": "^6.4.17",
     "nodemon": "^2.0.6",
-    "path": "^0.12.7"
+    "octokit": "^1.0.0-hello-world",
+    "path": "^0.12.7",
+    "xhr": "^2.6.0",
+    "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {},
   "scripts": {
