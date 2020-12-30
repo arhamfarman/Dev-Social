@@ -7,6 +7,7 @@ const {register,
     updateDetails,
     // updatePassword,
     // regVerification, 
+    verifiedLogin,
     checkProfile,
     googleAuth,
     googleCallback
@@ -17,6 +18,7 @@ const router = express.Router()
 console.log('auth routes 15')
 router.post('/register',register)
 router.post('/login',login)
+router.post('/login/:resetToken',verifiedLogin)
 router.get('/me',protect,getMe)
 router.put('/updatedetails',protect,updateDetails)
 router.post('/forgotpassword',forgotPassword)

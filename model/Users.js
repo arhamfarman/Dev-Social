@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken')
 const UserSchema = new mongoose.Schema({
     name:{
         type:String,
-        required:[true,'Please add a name']
+        required:[false,'Please add a name']
     },
        email:{
         type:String,
@@ -16,6 +16,11 @@ const UserSchema = new mongoose.Schema({
         match:[
             /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/,
             'Please use a valid email']
+    },
+    verificationStatus:{
+        type: String,
+        enum:['verified','unverified'],
+        default:'unverified'
     },
     role:{
         type: String,

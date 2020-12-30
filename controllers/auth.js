@@ -26,39 +26,45 @@ const Users = require('../model/Users');
 
 exports.register = asyncHandler(async(req,res,next)=>{
 
-const{name,email,role}= req.body
-const em = await User.findOne({email})
+const{email}= req.body
+// const user = await User.findOne({email:req.body.email })
+const em = await User.findOne({email})                                                                   
 
+ if(em){
+        return next(new ErrorResponse('User with that email already exists', 404))
+    }
 
+    const verifEM = verifyEmail(email)
 
-    if(em){
-        return next(new ErrorResponse('USer with that email already exists', 404))
+    if(!verifEM){
+        return next(new ErrorResponse('Invalid Email', 404))
     }
 
     const password = generateString()
-
-    const user = await User.create({
-        name,
-        email,
-        password,
-        role
-      });
+    const user = await User.create({email,password})
+    
+    // const user = await User.create({
+    //     name,
+    //     email,
+    //     password,
+    //     role
+    //   });
 
     //Get reset token
 
-   // const resetToken = user.getVerfiyToken()
+    const resetToken = user.getVerfiyToken()
 
     await user.save({validateBeforeSave:false})
 
     // Create reset URL
-    const resetURL  = `${req.protocol}://${req.get('host')}/api/v1/auth/login/`
+    const resetURL  = `${req.protocol}://${req.get('host')}/api/v1/auth/login/${resetToken}`
         
     const message = `This is the verification email, to complete registration go to:
      \n${resetURL}\nYour Password is "${password}"`
 
     try {
         await sendEmail({
-            email: user.email,
+            email: email,
             subject: 'Email Verification',
             message
         })
@@ -74,8 +80,39 @@ const em = await User.findOne({email})
         return next(new ErrorResponse('Email could not be sent', 500))
     }
 
-    sendTokenResponse(user, 200, res);
+    res.status(200).json({
+        success:true,
+        data:user
+    })
+    
    
+})
+
+//@desc    Verify
+//function
+function verifyEmail(email){
+    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+}
+
+//@desc    Verified Login
+//@route   POST /api/v1/auth/login/:resetToken
+//@access  Public
+
+exports.verifiedLogin = asyncHandler(async(req,res,next)=>{
+
+    const fieldsToUpdate={
+        verificationStatus:'verified'
+    }
+    const user = await User.findByIdAndUpdate(req.user.id,fieldsToUpdate,{
+        new:true,
+        runValidators:true
+    })
+    
+    res.status(200).json({
+        success:true,
+        data:user
+    })
 })
 
 
@@ -86,10 +123,22 @@ const em = await User.findOne({email})
 exports.login = asyncHandler(async(req,res,next)=>{
 
     const{email,password}= req.body
+    const pass = await User.findOne({email})
+
+    if(!pass){
+        return next(new ErrorResponse('Email not verified', 400))
+    }
 
     //Validate email and password
     if(!email||!password){
         return next(new ErrorResponse('Please provide an email and a password', 400))
+    }
+
+    const verifStatus = pass.verificationStatus
+
+    if(verifStatus=='unverified')
+    {
+        return next(new ErrorResponse('User not Verified', 400))
     }
 
     //Check for the user
@@ -278,7 +327,7 @@ const result = await request("GET /users/arhamfarman");
   
   console.log(`Name:${result.data.name}\nProfile Picutre:${result.data.avatar_url}\nURL:${result.data.url}\nFollowers:${result.data.followers}\n${result.data.following}\n${result.data.gists_url}\n`);
 //   console.log(result.data.login)
-  res.json(result.data)
+  res.json(result.data)///profile of login user
   
    })
 
@@ -303,7 +352,9 @@ exports.googleAuth = asyncHandler(async(req,res,next)=>{
             scope: 'https://www.googleapis.com/auth/gmail.readonly'
         });
         console.log(url)
+        console.log("olala")
         res.redirect(url);
+        console.log("olala2")
     } else {
         const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
         gmail.users.labels.list({
@@ -311,6 +362,7 @@ exports.googleAuth = asyncHandler(async(req,res,next)=>{
         }, (err, res) => {
             if (err) return console.log('The API returned an error: ' + err);
             const labels = res.data.labels;
+            console.log("olala  3")
             if (labels.length) {
                 console.log('Labels:');
                 labels.forEach((label) => {
