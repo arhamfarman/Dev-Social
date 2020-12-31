@@ -57,7 +57,7 @@ const em = await User.findOne({email})
     await user.save({validateBeforeSave:false})
 
     // Create reset URL
-    const resetURL  = `${req.protocol}://${req.get('host')}/api/v1/auth/login/${resetToken}`
+    const resetURL  = `${req.protocol}://${req.get('host')}/api/v1/auth/login/${resetToken}/verified`
         
     const message = `This is the verification email, to complete registration go to:
      \n${resetURL}\nYour Password is "${password}"`
@@ -101,18 +101,17 @@ function verifyEmail(email){
 
 exports.verifiedLogin = asyncHandler(async(req,res,next)=>{
 
-    const fieldsToUpdate={
-        verificationStatus:'verified'
-    }
-    const user = await User.findByIdAndUpdate(req.user.id,fieldsToUpdate,{
-        new:true,
-        runValidators:true
-    })
-    
-    res.status(200).json({
-        success:true,
-        data:user
-    })
+    const email = req.body.email
+    const user = await User.findOne({email})
+
+    //status changed to verified
+     user.verificationStatus = "verified" /////////
+     user.numberOfFriends = user.friends.length
+     user.resetPasswordToken=undefined
+     user.resetPasswordExpire=undefined
+     await user.save()
+
+    sendTokenResponse(user, 200, res)
 })
 
 
@@ -327,8 +326,20 @@ const result = await request("GET /users/arhamfarman");
   
   console.log(`Name:${result.data.name}\nProfile Picutre:${result.data.avatar_url}\nURL:${result.data.url}\nFollowers:${result.data.followers}\n${result.data.following}\n${result.data.gists_url}\n`);
 //   console.log(result.data.login)
-  res.json(result.data)///profile of login user
-  
+ const name = result.data.login
+ const followers = result.data.followers
+ const following = result.data.following
+ const picture = result.data.avatar_url
+ const repos = result.data.public_repos
+ const gists = result.data.gists_url
+ const email = result.data.email
+ const location = result.data.location
+ const bio = result.data.bio
+ 
+ 
+//   res.json(result.data)///profile of login 
+  res.json({name,email,location,bio,followers,following,repos,gists,picture})
+
    })
 
 
@@ -352,9 +363,9 @@ exports.googleAuth = asyncHandler(async(req,res,next)=>{
             scope: 'https://www.googleapis.com/auth/gmail.readonly'
         });
         console.log(url)
-        console.log("olala")
+        
         res.redirect(url);
-        console.log("olala2")
+       
     } else {
         const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
         gmail.users.labels.list({
@@ -362,7 +373,7 @@ exports.googleAuth = asyncHandler(async(req,res,next)=>{
         }, (err, res) => {
             if (err) return console.log('The API returned an error: ' + err);
             const labels = res.data.labels;
-            console.log("olala  3")
+            
             if (labels.length) {
                 console.log('Labels:');
                 labels.forEach((label) => {

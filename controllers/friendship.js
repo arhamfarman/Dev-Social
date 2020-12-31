@@ -4,7 +4,8 @@ const Comment = require('../model/comments');
 const User = require('../model/Users');
 const { use } = require('../routes/comments');
 const crypto = require('crypto');
-const sendEmail = require('../utils/sendEmail')
+const sendEmail = require('../utils/sendEmail');
+const { send } = require('process');
 
 
 //@desc    Send Request to a User
@@ -17,7 +18,7 @@ const sendEmail = require('../utils/sendEmail')
 
 exports.sendReq = asyncHandler(async(req,res,next)=>{
     const user = await User.findOne({email:req.body.email })
-
+    const sender = req.body.sender
     if(!user){
         return next(new ErrorResponse('Theres no user with that email', 404))
     }
@@ -27,9 +28,10 @@ exports.sendReq = asyncHandler(async(req,res,next)=>{
     const requestToken = user.getResetPasswordToken()
 
     await user.save({validateBeforeSave:false})
+    // const senderName = user.name
 
     // Create reset URL
-    const requestURL  = `${req.protocol}://${req.get('host')}/api/v1/friends/acceptrequest/${requestToken}`
+    const requestURL  = `${req.protocol}://${req.get('host')}/api/v1/friends/acceptrequest/${requestToken}/${sender}`
         
     const message = `I want to be friends with you. Please make a PUT request to check my invite
     to: \n\n${requestURL}`
@@ -60,8 +62,8 @@ exports.sendReq = asyncHandler(async(req,res,next)=>{
 
 
 
-//@desc    Reset Password / acceptRequest
-//@route   PUT /api/v1/auth/resetPassword/:resetoken
+//@desc    AcceptRequest
+//@route   PUT /api/v1/auth/acceptrequest/:token
 //@access  Private
 
 exports.acceptRequest = asyncHandler(async(req,res,next)=>{
@@ -71,7 +73,7 @@ exports.acceptRequest = asyncHandler(async(req,res,next)=>{
     .update(req.params.resetToken)
     .digest('hex')
 
-
+    const sender = req.params.name
     const user = await User.findOne({
         resetPasswordToken,
         resetPasswordExpire:{ $gt: Date.now() }
@@ -80,9 +82,12 @@ exports.acceptRequest = asyncHandler(async(req,res,next)=>{
         return next(new ErrorResponse('Invalid token', 400))
     }
 
+    // var numberOfFriends = user.numberOfFriends
+
     //Set the new password
-     user.status = req.body.status
-     user.friends = req.body.friends
+    //  user.numberOfFriends = numberOfFriends+1
+     user.friends = [...user.friends,sender] /////////
+     user.numberOfFriends = user.friends.length
      user.resetPasswordToken=undefined
      user.resetPasswordExpire=undefined
      await user.save()

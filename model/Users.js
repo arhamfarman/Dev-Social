@@ -2,6 +2,7 @@ const crypto = require('crypto')
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const { isNumber } = require('util')
 
 //@ Descritption: This is the User profile
 const UserSchema = new mongoose.Schema({
@@ -19,7 +20,6 @@ const UserSchema = new mongoose.Schema({
     },
     verificationStatus:{
         type: String,
-        enum:['verified','unverified'],
         default:'unverified'
     },
     role:{
@@ -30,6 +30,10 @@ const UserSchema = new mongoose.Schema({
     projects:{
         type: String,
     },
+    // sender:[],
+    // sender:{
+    //     type:String
+    // },
     devTitle:{
         type:String
     },
@@ -48,8 +52,8 @@ const UserSchema = new mongoose.Schema({
         minlength:6,
         select:false
     },
-    status: String,
-    friends: String,
+    numberOfFriends: 0,
+    friends: [],
     resetPasswordToken:String,
     resetPasswordExpire:Date,
     requestToken:String,

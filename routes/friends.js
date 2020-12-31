@@ -9,5 +9,5 @@ router.route('/:id')
 .get(getFriends)
 
 router.post('/sendrequest',sendReq)
-router.put('/acceptrequest/:resetToken',acceptRequest)
+router.put('/acceptrequest/:resetToken/:name',acceptRequest)
 module.exports = router
