@@ -12,8 +12,10 @@ router.use('/:postID/comment',commentRouter)
 
 router.route('/').post(protect,authorize('publisher','admin'),createPost)
 
-router.route('/:id').put(protect,authorize('publisher','admin'),updatePost)
-.delete(protect,authorize('publisher','admin'),deletePosts).get(protect,authorize('publisher','admin'),getOnePost)
+router.route('/:id')
+.put(protect,authorize('publisher','admin'),updatePost)
+.delete(protect,authorize('publisher','admin'),deletePosts)
+.get(protect,authorize('publisher','admin'),getOnePost)
 
 
 

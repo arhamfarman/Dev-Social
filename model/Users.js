@@ -6,13 +6,32 @@ const { isNumber } = require('util')
 
 //@ Descritption: This is the User profile
 const UserSchema = new mongoose.Schema({
+    googleId: {
+        type: String,
+        required: true,
+      },
+      displayName: {
+        type: String,
+        required: true,
+      },
+      firstName: {
+        type: String,
+        required: true,
+      },
+      lastName: {
+        type: String,
+        required: true,
+      },
+      image: {
+        type: String,
+      },
     name:{
         type:String,
         required:[false,'Please add a name']
     },
        email:{
         type:String,
-        required:[true,'Please add an email'],
+        required:[false,'Please add an email'],
         unique:true,
         match:[
             /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/,

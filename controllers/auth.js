@@ -1,13 +1,13 @@
 const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../middleware/async');
 const User= require('../model/Users');
-const { unsubscribe } = require('../routes/auth');
+const { unsubscribe, use } = require('../routes/auth');
 const sendEmail = require('../utils/sendEmail.js');
 const crypto = require('crypto');
 const octokitRequest = require('@octokit/request');
 const { match } = require('assert');
 const ghAccountExists = require('gh-account-exists');
-const { exists } = require('../model/Users');
+const { exists, findOne } = require('../model/Users');
 var gs = require('github-scraper');
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const { request } = require("@octokit/request");
@@ -16,7 +16,10 @@ var https = require('https');
 const { json } = require('body-parser');
 const { google } = require('googleapis');
 const { red } = require('colors');
+const jwt = require('jsonwebtoken')
 const Users = require('../model/Users');
+const { token } = require('morgan');
+const passport = require('passport');
 
 
 
@@ -26,7 +29,7 @@ const Users = require('../model/Users');
 
 exports.register = asyncHandler(async(req,res,next)=>{
 
-const{email}= req.body
+const{name,email}= req.body
 // const user = await User.findOne({email:req.body.email })
 const em = await User.findOne({email})                                                                   
 
@@ -41,7 +44,7 @@ const em = await User.findOne({email})
     }
 
     const password = generateString()
-    const user = await User.create({email,password})
+    const user = await User.create({email,name,password})
     
     // const user = await User.create({
     //     name,
@@ -317,12 +320,24 @@ const sendTokenResponse = (user, statusCode, res)=>{
 //@route   POST /api/v1/postactivity/:id
 //@access  Public
 exports.checkProfile = asyncHandler(async(req,res,next)=>{
-//     var url = '/arhamfarman' // a random username
-//   gs(url, function(err, data) {
-//     console.log(data); // or what ever you want to do with the data
-//   })
-//   requestUserRepos(namer,res,req)
-const result = await request("GET /users/arhamfarman");
+
+   const token = req.cookies.token
+   /////
+   var decoded = jwt.verify(token, process.env.JWT_SECRET);
+       
+       console.log(decoded.id)
+      
+   //     req.user = await User.findById(decoded.id);
+    ////
+//    const user = await User.findOne({token})
+const user = await User.findById(decoded.id);
+   const username = user.name
+   console.log(username)
+if(!username){
+    return next(new ErrorResponse('The Github username for the curreent user is not valid', 500))
+}
+
+const result = await request(`GET /users/${username}`);
   
   console.log(`Name:${result.data.name}\nProfile Picutre:${result.data.avatar_url}\nURL:${result.data.url}\nFollowers:${result.data.followers}\n${result.data.following}\n${result.data.gists_url}\n`);
 //   console.log(result.data.login)
@@ -346,7 +361,7 @@ const result = await request("GET /users/arhamfarman");
 
 //@desc    Google Auth
 //@route   POST /api/v1/auth googleauth
-//@access  Public
+// //@access  Public
 exports.googleAuth = asyncHandler(async(req,res,next)=>{
 
    clientId= process.env.GOOGLE_CLIENT_ID, // e.g. asdfghjkljhgfdsghjk.apps.googleusercontent.com
@@ -423,3 +438,17 @@ function generateString() {
     result.toString
     return result;
 }
+
+
+// /// @desc:Google authentication Using passport strategy
+// exports.googleStrategy = asyncHandler(async(req,res,next)=>{
+//     passport.authenticate('google',{scope:['profile']})
+// })
+
+
+// // @desc: Google authentication callback using passport strategy
+// exports.googleStrategyCallback = asyncHandler(async(req,res,next)=>{
+//     passport.authenticate('google',{failureRedirect:['/']})
+//     res.redirect('https://www.youtube.com/')
+
+// })

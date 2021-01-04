@@ -1,13 +1,18 @@
 const path = require('path')
 const express = require('express')
+const exphbs = require('express-handlebars')
 const dotenv = require('dotenv')
 const morgan  = require('morgan')
 const errorHandler = require('./middleware/error');
 const connectDB = require('./config/db')
+const passport = require('passport');
 const colors = require('colors'); 
 const fileUpload = require('express-fileupload')
 const cookieParser = require('cookie-parser')
 const app = express();
+const session = require('express-session')
+
+
 
 
 //Route Files
@@ -27,6 +32,9 @@ app.use(cookieParser())
 
 dotenv.config({path:'./config/config.env'})
 
+//Passport config
+require('./config/passport')(passport)
+
 // Connect to database
 connectDB();
 
@@ -36,6 +44,22 @@ connectDB();
 if(process.env.NODE_ENV==='development'){
     app.use(morgan('dev'))
 }
+
+
+//Template Engine (Express handlebars)
+app.engine('.hbs', exphbs({defaultLayout:'main',extname: '.hbs'}));
+app.set('view engine', '.hbs');
+
+//express-sessions
+app.use(session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: false
+}))
+
+//Passport middleware
+app.use(passport.initialize())
+app.use(passport.session())
 
 //file uploading
 app.use(fileUpload())
